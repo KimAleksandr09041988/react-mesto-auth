@@ -1,6 +1,10 @@
 import React from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { CurrentUserContext } from './contexts/CurrentUserContext';
 import Header from './Header';
 import Main from './Main';
+import Login from './Login';
+import Register from './Register';
 import Footer from './Footer';
 import PopupWithForm from './PopupWithForm';
 import EditProfilePopup from './EditProfilePopup';
@@ -8,7 +12,6 @@ import EditAvatarPopup from './EditAvatarPopup';
 import AddPlacePopup from './AddPlacePopup';
 import ImagePopup from './ImagePopup';
 import server from '../utils/Api';
-import { CurrentUserContext } from './contexts/CurrentUserContext';
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
@@ -17,6 +20,7 @@ function App() {
   const [selectedCard, setSelectedCard] = React.useState({ name: '', link: '' });
   const [currentUser, setCurrentUser] = React.useState({});
   const [cardList, setCardList] = React.useState([]);
+  const [email, setEmail] = React.useState('');
 
   React.useEffect(() => {
     server.getUserInfo()
@@ -107,16 +111,21 @@ function App() {
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
-      <Header />
-      <Main
-        onEditProfile={handleIsEditProfilePopup}
-        onAddPlace={handleIsAddPlacePopup}
-        onEditAvatar={handleIsEditAvatarPopup}
-        onCardClick={handleCardClick}
-        onCardLike={handleCardLike}
-        onCardDelete={handleCardDelete}
-        cardList={cardList}
-      />
+      <Header email={email} />
+      <Routes>
+        <Route path='/'
+          element={<Main
+            onEditProfile={handleIsEditProfilePopup}
+            onAddPlace={handleIsAddPlacePopup}
+            onEditAvatar={handleIsEditAvatarPopup}
+            onCardClick={handleCardClick}
+            onCardLike={handleCardLike}
+            onCardDelete={handleCardDelete}
+            cardList={cardList} />}
+        />
+        <Route path='/sign-in' element={<Login />} />
+        <Route path='/sign-up' element={<Register />} />
+      </Routes>
       <Footer />
 
       {/* popup */}
