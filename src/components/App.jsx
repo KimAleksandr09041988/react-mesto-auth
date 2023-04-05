@@ -38,6 +38,7 @@ function App() {
           setLoggedIn(true);
           navigate('/', { replace: true })
         })
+        .catch(err => console.log(err))
     }
   }, [navigate])
 
@@ -51,14 +52,13 @@ function App() {
         .catch(err => {
           console.log(err);
         })
-    loggedIn &&
-      server.getCardInfo()
-        .then(result => {
-          setCardList(result);
-        })
-        .catch(err => {
-          console.log(err);
-        })
+    server.getCardInfo()
+      .then(result => {
+        setCardList(result);
+      })
+      .catch(err => {
+        console.log(err);
+      })
   }, [loggedIn]);
 
   function handleCardLike(card) {
@@ -184,7 +184,10 @@ function App() {
           navigate('/', { replace: true });
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => {
+        console.log(err)
+        setIsAddTooltipOpen(true)
+      })
   }
 
   return (
