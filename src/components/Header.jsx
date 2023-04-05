@@ -3,12 +3,12 @@ import logo from '../image/Vector.svg';
 import { Routes, Route, Link } from 'react-router-dom';
 
 
-export default function Header({ email }) {
+export default function Header({ email, onSignOut }) {
   return (
     <header className="header">
       <img className="logo" src={logo} alt="Логотип" />
       <div className="header__wrapper">
-        {email && <p className="header__user-email">email@mail.com</p>}
+        {email && <p className="header__user-email">{email}</p>}
         <Routes>
           <Route
             path="/sign-up"
@@ -29,7 +29,7 @@ export default function Header({ email }) {
           <Route
             path="/"
             element={
-              <Link className="header__link" to="/sign-in">
+              <Link className="header__link" onClick={onSignOut} to="/sign-in">
                 Выйти
               </Link>
             }

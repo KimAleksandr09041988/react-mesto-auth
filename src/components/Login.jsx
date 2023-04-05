@@ -1,40 +1,9 @@
 import React from "react";
 import FormPage from "./FormPage";
-import { useNavigate } from "react-router-dom";
-import auth from '../utils/Auth'
+import { FormValueContext } from './contexts/FormVaueContext';
 
-export default function Login({ handleLogin }) {
-  const [formValue, setFormValue] = React.useState({
-    email: '',
-    password: ''
-  })
-
-  const navigate = useNavigate();
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setFormValue({
-      ...formValue,
-      [name]: value
-    })
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    const { email, password } = formValue;
-    auth.avtorization(email, password)
-      .then(res => {
-        if (res.token) {
-          localStorage.setItem('token', res.token);
-          setFormValue({
-            email: '',
-            password: ''
-          })
-          handleLogin();
-          navigate('/main', { replace: true });
-        }
-      })
-  }
+export default function Login({ onChange, onSubmit }) {
+  const formValue = React.useContext(FormValueContext);
 
   return (
     <main>
@@ -43,8 +12,8 @@ export default function Login({ handleLogin }) {
         btnDescription='Войти'
         email={formValue.email}
         password={formValue.password}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
+        onChange={onChange}
+        onSubmit={onSubmit}
       />
     </main>
   )

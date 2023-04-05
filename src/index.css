@@ -58,6 +58,13 @@
 @import url('./blocks/page-form/__fieldset/page-form__fieldset.css');
 @import url('./blocks/page-form/__input/page-form__input.css');
 @import url('./blocks/page-form/__btn/page-form__btn.css');
+/* tooltip */
+@import url('./blocks/tooltip/tooltip.css');
+@import url('./blocks/tooltip/__container/tooltip__container.css');
+@import url('./blocks/tooltip/__img/tooltip__img.css');
+@import url('./blocks/tooltip/__title/tooltip__title.css');
+@import url('./blocks/tooltip/__btn-close/tooltip__btn-close.css');
+@import url('./blocks/tooltip/_active/tooltip_active.css');
 /* footer */
 @import url('./blocks/footer/footer.css');
 @import url('./blocks/footer/__text/footer__text.css');

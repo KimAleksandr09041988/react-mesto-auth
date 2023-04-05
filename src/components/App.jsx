@@ -1,6 +1,7 @@
 import React from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { CurrentUserContext } from './contexts/CurrentUserContext';
+import { FormValueContext } from './contexts/FormVaueContext';
 import ProtectedRouteElement from './ProtectedRoute';
 import Header from './Header';
 import Main from './Main';
@@ -12,52 +13,53 @@ import EditProfilePopup from './EditProfilePopup';
 import EditAvatarPopup from './EditAvatarPopup';
 import AddPlacePopup from './AddPlacePopup';
 import ImagePopup from './ImagePopup';
+import InfoTooltip from './InfoTooltip';
 import server from '../utils/Api';
 import auth from '../utils/Auth';
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
   const [isAddPlacePopupOpen, setIsAddPlacePopupOpen] = React.useState(false);
+  const [isAddTooltipOpen, setIsAddTooltipOpen] = React.useState(false);
   const [isEditAvatarPopupOpen, setIsEditAvatarPopupOpen] = React.useState(false);
   const [selectedCard, setSelectedCard] = React.useState({ name: '', link: '' });
   const [currentUser, setCurrentUser] = React.useState({});
   const [cardList, setCardList] = React.useState([]);
   const [loggedIn, setLoggedIn] = React.useState(false)
   const [email, setEmail] = React.useState('');
+  const [errorReg, setErrorReg] = React.useState(false)
   const navigate = useNavigate();
 
   React.useEffect(() => {
     if (localStorage.getItem('token')) {
-      auth
-        .checkAuthorization()
-        .then((res) => {
+      auth.checkAuthorization()
+        .then(res => {
           setEmail(res.data.email);
           setLoggedIn(true);
-          navigate('/main', { replace: true });
+          navigate('/', { replace: true })
         })
-        .catch((err) => {
-          console.log(err);
-        });
     }
-  }, []);
+  }, [navigate])
+
 
   React.useEffect(() => {
-    server.getUserInfo()
-      .then(res => {
-        setCurrentUser(res)
-      })
-      .catch(err => {
-        console.log(err);
-      })
-
-    server.getCardInfo()
-      .then(result => {
-        setCardList(result);
-      })
-      .catch(err => {
-        console.log(err);
-      })
-  }, []);
+    loggedIn &&
+      server.getUserInfo()
+        .then(res => {
+          setCurrentUser(res)
+        })
+        .catch(err => {
+          console.log(err);
+        })
+    loggedIn &&
+      server.getCardInfo()
+        .then(result => {
+          setCardList(result);
+        })
+        .catch(err => {
+          console.log(err);
+        })
+  }, [loggedIn]);
 
   function handleCardLike(card) {
     const isLike = card.likes.some(i => i._id === currentUser._id);
@@ -126,47 +128,121 @@ function App() {
     setIsAddPlacePopupOpen(false);
     setIsEditAvatarPopupOpen(false)
     setSelectedCard({ name: '', link: '' })
+    setIsAddTooltipOpen(false)
   }
 
-  function handleLogin() {
-    setLoggedIn(true)
+  const handleSignOut = () => {
+    setEmail("");
+    localStorage.removeItem("token");
+  };
+
+  const [formValue, setFormValue] = React.useState({
+    email: '',
+    password: ''
+  })
+
+  function handleChangeInput(e) {
+    const { name, value } = e.target;
+    setFormValue({
+      ...formValue,
+      [name]: value
+    })
+  }
+
+  function handleSubmitRegister(e) {
+    e.preventDefault()
+    const { email, password } = formValue;
+    auth.registration(email, password)
+      .then((res) => {
+        console.log(res.status);
+        setFormValue({
+          email: '',
+          password: ''
+        })
+        setIsAddTooltipOpen(true)
+        setErrorReg(true)
+        navigate('/', { replace: true })
+      })
+      .catch((err) => {
+        setIsAddTooltipOpen(true)
+        console.log(err);
+      })
+  }
+
+  function handleSubmitLogin(e) {
+    e.preventDefault()
+    const { email, password } = formValue;
+    auth.avtorization(email, password)
+      .then(res => {
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          setFormValue({
+            email: '',
+            password: ''
+          })
+          setLoggedIn(true)
+          navigate('/', { replace: true });
+        }
+      })
+      .catch(err => console.log(err))
   }
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
-      <Header email={email} />
-      <Routes>
-        <Route path='/' element={loggedIn ? <Navigate to='/main' replace /> : <Navigate to='/sign-in' />} />
-        <Route path="/main"
-          element={<ProtectedRouteElement element={Main}
-            onEditProfile={handleIsEditProfilePopup}
-            onAddPlace={handleIsAddPlacePopup}
-            onEditAvatar={handleIsEditAvatarPopup}
-            onCardClick={handleCardClick}
-            onCardLike={handleCardLike}
-            onCardDelete={handleCardDelete}
-            cardList={cardList}
-            loggedIn={loggedIn}
-          />} />
-        <Route path='/sign-in' element={<Login handleLogin={handleLogin} />} />
-        <Route path='/sign-up' element={<Register />} />
-      </Routes>
-      <Footer />
+      <FormValueContext.Provider value={formValue}>
 
-      {/* popup */}
-      <EditProfilePopup isOpen={isEditProfilePopupOpen} isClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
+        <Header email={email} onSignOut={handleSignOut} />
+        <Routes>
+          <Route path="/"
+            element={<ProtectedRouteElement element={Main}
+              onEditProfile={handleIsEditProfilePopup}
+              onAddPlace={handleIsAddPlacePopup}
+              onEditAvatar={handleIsEditAvatarPopup}
+              onCardClick={handleCardClick}
+              onCardLike={handleCardLike}
+              onCardDelete={handleCardDelete}
+              cardList={cardList}
+              loggedIn={loggedIn}
+            />} />
+          <Route
+            path='/sign-in'
+            element={<Login
+              onChange={handleChangeInput}
+              onSubmit={handleSubmitLogin}
+            />}
+          />
+          <Route
+            path='/sign-up'
+            element={<Register
+              onSubmit={handleSubmitRegister}
+              onChange={handleChangeInput}
+            />}
+          />
+        </Routes>
+        <Footer />
 
-      <EditAvatarPopup isOpen={isEditAvatarPopupOpen} isClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
+        {/* popup */}
+        <EditProfilePopup isOpen={isEditProfilePopupOpen} isClose={closeAllPopups} onUpdateUser={handleUpdateUser} />
 
-      <AddPlacePopup isOpen={isAddPlacePopupOpen} isClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
+        <EditAvatarPopup isOpen={isEditAvatarPopupOpen} isClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar} />
 
-      <PopupWithForm name='delete' title='Вы уверены?' textButton='Да' isClose={closeAllPopups}>
-        <input id="avatarUrl-input" className="form__input" name="avatar" type="url" placeholder="Ссылка на аватар"
-          required />
-        <span className="form__input-error avatarUrl-input-error"></span>
-      </PopupWithForm>
+        <AddPlacePopup isOpen={isAddPlacePopupOpen} isClose={closeAllPopups} onAddPlace={handleAddPlaceSubmit} />
 
-      <ImagePopup card={selectedCard} onClose={closeAllPopups} />
+        <PopupWithForm name='delete' title='Вы уверены?' textButton='Да' isClose={closeAllPopups}>
+          <input id="avatarUrl-input" className="form__input" name="avatar" type="url" placeholder="Ссылка на аватар"
+            required />
+          <span className="form__input-error avatarUrl-input-error"></span>
+        </PopupWithForm>
+
+        <ImagePopup card={selectedCard} onClose={closeAllPopups} />
+
+        <InfoTooltip
+          errorReg={errorReg}
+          isOpen={isAddTooltipOpen}
+          isClose={closeAllPopups}
+        />
+
+      </FormValueContext.Provider>
     </CurrentUserContext.Provider>
   );
 }

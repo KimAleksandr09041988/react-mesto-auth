@@ -20,13 +20,7 @@ class Auth {
         email
       })
     })
-      .then((res) => {
-        if (() => Promise.resolve(res.status) === 400) {
-          return res.json();
-        }
-        return Promise.reject(res);
-      }
-      );
+      .then(res => this._getResponseData(res))
   };
 
   avtorization(email, password) {
@@ -39,7 +33,8 @@ class Auth {
   }
 
   checkAuthorization() {
-    return fetch(`${this.baseUrl}/users/me`, {
+    return fetch(`${this._baseUrl}/users/me`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${localStorage.getItem('token')}`,

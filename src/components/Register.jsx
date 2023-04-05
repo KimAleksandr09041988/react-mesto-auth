@@ -1,36 +1,9 @@
 import React from "react";
 import FormPage from "./FormPage";
-import { useNavigate } from "react-router-dom";
-import auth from '../utils/Auth'
+import { FormValueContext } from './contexts/FormVaueContext';
 
-export default function Register() {
-  const [formValue, setFormValue] = React.useState({
-    email: '',
-    password: ''
-  })
-
-  const navigate = useNavigate();
-
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setFormValue({
-      ...formValue,
-      [name]: value
-    })
-  }
-
-  function handleSubmit(e) {
-    e.preventDefault()
-    const { email, password } = formValue;
-    auth.registration(email, password)
-      .then((res) => {
-        console.log(res);
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-
+export default function Register({ onChange, onSubmit }) {
+  const formValue = React.useContext(FormValueContext);
   return (
     <main>
       <FormPage
@@ -38,8 +11,8 @@ export default function Register() {
         btnDescription='Зарегистрироваться'
         email={formValue.email}
         password={formValue.password}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
+        onChange={onChange}
+        onSubmit={onSubmit}
       />
     </main>
   )
