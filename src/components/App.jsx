@@ -1,6 +1,7 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { CurrentUserContext } from './contexts/CurrentUserContext';
+import ProtectedRouteElement from './ProtectedRoute';
 import Header from './Header';
 import Main from './Main';
 import Login from './Login';
@@ -12,6 +13,7 @@ import EditAvatarPopup from './EditAvatarPopup';
 import AddPlacePopup from './AddPlacePopup';
 import ImagePopup from './ImagePopup';
 import server from '../utils/Api';
+import auth from '../utils/Auth';
 
 function App() {
   const [isEditProfilePopupOpen, setIsEditProfilePopupOpen] = React.useState(false);
@@ -20,7 +22,24 @@ function App() {
   const [selectedCard, setSelectedCard] = React.useState({ name: '', link: '' });
   const [currentUser, setCurrentUser] = React.useState({});
   const [cardList, setCardList] = React.useState([]);
+  const [loggedIn, setLoggedIn] = React.useState(false)
   const [email, setEmail] = React.useState('');
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (localStorage.getItem('token')) {
+      auth
+        .checkAuthorization()
+        .then((res) => {
+          setEmail(res.data.email);
+          setLoggedIn(true);
+          navigate('/main', { replace: true });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, []);
 
   React.useEffect(() => {
     server.getUserInfo()
@@ -109,21 +128,27 @@ function App() {
     setSelectedCard({ name: '', link: '' })
   }
 
+  function handleLogin() {
+    setLoggedIn(true)
+  }
+
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Header email={email} />
       <Routes>
-        <Route path='/'
-          element={<Main
+        <Route path='/' element={loggedIn ? <Navigate to='/main' replace /> : <Navigate to='/sign-in' />} />
+        <Route path="/main"
+          element={<ProtectedRouteElement element={Main}
             onEditProfile={handleIsEditProfilePopup}
             onAddPlace={handleIsAddPlacePopup}
             onEditAvatar={handleIsEditAvatarPopup}
             onCardClick={handleCardClick}
             onCardLike={handleCardLike}
             onCardDelete={handleCardDelete}
-            cardList={cardList} />}
-        />
-        <Route path='/sign-in' element={<Login />} />
+            cardList={cardList}
+            loggedIn={loggedIn}
+          />} />
+        <Route path='/sign-in' element={<Login handleLogin={handleLogin} />} />
         <Route path='/sign-up' element={<Register />} />
       </Routes>
       <Footer />
