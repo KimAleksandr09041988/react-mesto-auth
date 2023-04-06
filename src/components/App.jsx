@@ -165,6 +165,7 @@ function App() {
       })
       .catch((err) => {
         setIsAddTooltipOpen(true)
+        setErrorReg(false)
         console.log(err);
       })
   }
@@ -186,6 +187,7 @@ function App() {
       })
       .catch(err => {
         console.log(err)
+        setErrorReg(false)
         setIsAddTooltipOpen(true)
       })
   }
