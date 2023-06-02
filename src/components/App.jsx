@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { CurrentUserContext } from './contexts/CurrentUserContext';
 import { FormValueContext } from './contexts/FormVaueContext';
 import ProtectedRouteElement from './ProtectedRoute';
@@ -222,6 +222,12 @@ function App() {
               onSubmit={handleSubmitRegister}
               onChange={handleChangeInput}
             />}
+          />
+          <Route
+              path="*"
+              element={
+                loggedIn ? <Navigate to="/" /> : <Navigate to="/sign-in" />
+              }
           />
         </Routes>
         <Footer />
